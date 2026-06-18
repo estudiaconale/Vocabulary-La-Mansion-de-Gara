@@ -8,6 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Heavyweight Libraries for Template Downloads/Uploads and DOCX/PDF Extraction -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -431,174 +436,301 @@
             </section>
 
             <!-- SECTION 2: DIDACTIC UNITS -->
-            <section id="tab-units" class="space-y-6 hidden">
-                <div>
-                    <h2 class="text-xl font-bold text-stone-800 dark:text-zinc-100 flex items-center gap-2">
-                        <i class="fa-solid fa-folder text-emerald-600"></i> Didactic Units
-                    </h2>
-                    <p class="text-xs text-stone-500">Track and view your English learning categorized by academic modules.</p>
-                </div>
-
-                <div class="space-y-4">
-                    <!-- Dynamic collapse/expand items -->
-                    <div id="unitsContainer" class="space-y-4">
-                        <!-- Units content dynamically loaded here -->
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECTION 3: ADD NEW VOCABULARY -->
+            <!-- SECTION 3: ADD NEW VOCABULARY (Upgraded Multi-Method Panel) -->
             <section id="tab-add-vocab" class="space-y-6 hidden">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200 dark:border-zinc-800 pb-4">
                     <div>
                         <h2 class="text-xl font-bold text-stone-800 dark:text-zinc-100 flex items-center gap-2">
                             <i class="fa-solid fa-plus-circle text-emerald-600"></i> Add & Manage Vocabulary
                         </h2>
-                        <p class="text-xs text-stone-500">Add custom words, phrasal verbs, idioms, and grammar chunks to your personal class ledger.</p>
+                        <p class="text-xs text-stone-500">Expand your permanent glossary repository using manual tools, document templates, or Gemini AI scanners.</p>
                     </div>
-                    <!-- Quick action buttons -->
-                    <button onclick="openBulkImport()" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-3 py-2 rounded-xl transition-all">
-                        <i class="fa-solid fa-file-import mr-1"></i> Bulk Text Import
+                </div>
+
+                <!-- Method Switcher Tab Controls -->
+                <div class="flex border-b border-stone-200 dark:border-zinc-800">
+                    <button onclick="switchAddMethod('manual')" id="btn-method-manual" class="px-5 py-3 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400">
+                        <i class="fa-solid fa-keyboard mr-1.5"></i> Method 1: Manual Entry
+                    </button>
+                    <button onclick="switchAddMethod('template')" id="btn-method-template" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-zinc-300">
+                        <i class="fa-solid fa-file-excel mr-1.5"></i> Method 2: Template Upload
+                    </button>
+                    <button onclick="switchAddMethod('document')" id="btn-method-document" class="px-5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-zinc-300">
+                        <i class="fa-solid fa-file-pdf mr-1.5"></i> Method 3: AI Document Scan
                     </button>
                 </div>
 
-                <!-- Main Add Form -->
-                <div class="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm max-w-4xl">
-                    <form id="vocabForm" onsubmit="handleVocabSubmit(event)" class="space-y-5">
-                        <input type="hidden" id="editEntryId" value="">
+                <!-- METHOD 1: MANUAL ENTRY FORM -->
+                <div id="method-panel-manual" class="space-y-6">
+                    <div class="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm max-w-4xl">
+                        <form id="vocabForm" onsubmit="handleVocabSubmit(event)" class="space-y-5">
+                            <input type="hidden" id="editEntryId" value="">
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <!-- Target Word or Expression -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Word or Expression *</label>
-                                <input type="text" id="formWord" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. Break a leg">
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <!-- Target Word or Expression -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Word or Expression *</label>
+                                    <input type="text" id="formWord" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. Break a leg">
+                                </div>
 
-                            <!-- Category / Type -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Type / Category *</label>
-                                <select id="formType" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
-                                    <option value="New vocabulary words">New Vocabulary Word</option>
-                                    <option value="Phrasal verbs">Phrasal Verb</option>
-                                    <option value="Idioms">Idiom</option>
-                                    <option value="Expressions">Expression</option>
-                                    <option value="Collocations">Collocation</option>
-                                    <option value="Useful grammar chunks">Useful Grammar Chunk</option>
-                                    <option value="Academic vocabulary">Academic Vocabulary</option>
-                                    <option value="Everyday English expressions">Everyday English Expression</option>
-                                </select>
-                            </div>
+                                <!-- Category / Type -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Type / Category *</label>
+                                    <select id="formType" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
+                                        <option value="New vocabulary words">New Vocabulary Word</option>
+                                        <option value="Phrasal verbs">Phrasal Verb</option>
+                                        <option value="Idioms">Idiom</option>
+                                        <option value="Expressions">Expression</option>
+                                        <option value="Collocations">Collocation</option>
+                                        <option value="Useful grammar chunks">Useful Grammar Chunk</option>
+                                        <option value="Academic vocabulary">Academic Vocabulary</option>
+                                        <option value="Everyday English expressions">Everyday English Expression</option>
+                                    </select>
+                                </div>
 
-                            <!-- Part of speech -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Part of Speech</label>
-                                <input type="text" id="formPOS" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. noun, verb, idiom, phrase">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <!-- English Definition -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">English Definition *</label>
-                                <textarea id="formDefinition" required rows="3" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="A concise explanation of the word's meaning in English..."></textarea>
-                            </div>
-
-                            <!-- Spanish Translation -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Spanish Translation *</label>
-                                <textarea id="formTranslation" required rows="3" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Traducción correspondiente en español..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <!-- Phonetic Pronunciation (IPA) -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Pronunciation (IPA)</label>
-                                <input type="text" id="formPronunciation" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. /breɪk ə leɡ/">
-                            </div>
-
-                            <!-- Didactic Unit Assignment -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Didactic Unit *</label>
-                                <select id="formUnit" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
-                                    <option value="1">Unit 1</option>
-                                    <option value="2">Unit 2</option>
-                                    <option value="3">Unit 3</option>
-                                    <option value="4">Unit 4</option>
-                                    <option value="5">Unit 5</option>
-                                </select>
-                            </div>
-
-                            <!-- Topic Area -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Topic Area *</label>
-                                <select id="formTopic" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
-                                    <option value="Technology & Innovation">Technology & Innovation</option>
-                                    <option value="Daily Routine">Daily Routine</option>
-                                    <option value="Human Emotions">Human Emotions</option>
-                                    <option value="Business & Finance">Business & Finance</option>
-                                    <option value="Travel & Leisure">Travel & Leisure</option>
-                                    <option value="Idioms & Slang">Idioms & Slang</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Example usage sentence -->
-                        <div>
-                            <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Example Sentence *</label>
-                            <input type="text" id="formExample" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Create a sentence highlighting natural application of the phrase...">
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <!-- Synonyms & Antonyms -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Synonyms (Comma separated)</label>
-                                <input type="text" id="formSynonyms" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. support, aid, helper">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Antonyms (Comma separated)</label>
-                                <input type="text" id="formAntonyms" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. block, stop, discourage">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <!-- Common Collocations & Difficulty -->
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Common Collocations (Comma separated)</label>
-                                <input type="text" id="formCollocations" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. constant support, offer support">
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Difficulty Level *</label>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
-                                        <input type="radio" name="formDifficulty" value="Beginner" checked class="mr-2 accent-emerald-600"> Beginner
-                                    </label>
-                                    <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
-                                        <input type="radio" name="formDifficulty" value="Intermediate" class="mr-2 accent-emerald-600"> Intermediate
-                                    </label>
-                                    <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
-                                        <input type="radio" name="formDifficulty" value="Advanced" class="mr-2 accent-emerald-600"> Advanced
-                                    </label>
+                                <!-- Part of speech -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Part of Speech</label>
+                                    <input type="text" id="formPOS" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. noun, verb, idiom, phrase">
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Private learning notes -->
-                        <div>
-                            <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Extra Usage Notes & Classroom Reminders</label>
-                            <textarea id="formNotes" rows="2" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Additional hints, cultural notes, teacher recommendations..."></textarea>
-                        </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- English Definition -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">English Definition *</label>
+                                    <textarea id="formDefinition" required rows="3" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="A concise explanation of the word's meaning in English..."></textarea>
+                                </div>
 
-                        <!-- Action Controls -->
-                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-zinc-800">
-                            <button type="button" onclick="resetForm()" class="text-xs text-stone-500 hover:text-stone-700 px-4 py-2 font-semibold">Clear Form</button>
-                            <button type="submit" id="submitFormBtn" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow transition-all">
-                                <i class="fa-solid fa-floppy-disk mr-1"></i> Save Entry
+                                <!-- Spanish Translation -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Spanish Translation *</label>
+                                    <textarea id="formTranslation" required rows="3" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Traducción correspondiente en español..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <!-- Phonetic Pronunciation (IPA) -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Pronunciation (IPA)</label>
+                                    <input type="text" id="formPronunciation" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. /breɪk ə leɡ/">
+                                </div>
+
+                                <!-- Didactic Unit Assignment -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Didactic Unit *</label>
+                                    <select id="formUnit" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
+                                        <option value="1">Unit 1</option>
+                                        <option value="2">Unit 2</option>
+                                        <option value="3">Unit 3</option>
+                                        <option value="4">Unit 4</option>
+                                        <option value="5">Unit 5</option>
+                                    </select>
+                                </div>
+
+                                <!-- Topic Area -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Topic Area *</label>
+                                    <select id="formTopic" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl">
+                                        <option value="Technology & Innovation">Technology & Innovation</option>
+                                        <option value="Daily Routine">Daily Routine</option>
+                                        <option value="Human Emotions">Human Emotions</option>
+                                        <option value="Business & Finance">Business & Finance</option>
+                                        <option value="Travel & Leisure">Travel & Leisure</option>
+                                        <option value="Idioms & Slang">Idioms & Slang</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Example usage sentence -->
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Example Sentence *</label>
+                                <input type="text" id="formExample" required class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Create a sentence highlighting natural application of the phrase...">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- Synonyms & Antonyms -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Synonyms (Comma separated)</label>
+                                    <input type="text" id="formSynonyms" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. support, aid, helper">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Antonyms (Comma separated)</label>
+                                    <input type="text" id="formAntonyms" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. block, stop, discourage">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <!-- Common Collocations & Difficulty -->
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Common Collocations (Comma separated)</label>
+                                    <input type="text" id="formCollocations" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="e.g. constant support, offer support">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Difficulty Level *</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
+                                            <input type="radio" name="formDifficulty" value="Beginner" checked class="mr-2 accent-emerald-600"> Beginner
+                                        </label>
+                                        <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
+                                            <input type="radio" name="formDifficulty" value="Intermediate" class="mr-2 accent-emerald-600"> Intermediate
+                                        </label>
+                                        <label class="flex items-center justify-center p-3 border border-stone-200 dark:border-zinc-700 rounded-xl text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-zinc-800">
+                                            <input type="radio" name="formDifficulty" value="Advanced" class="mr-2 accent-emerald-600"> Advanced
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Private learning notes -->
+                            <div>
+                                <label class="block text-xs font-bold text-stone-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Extra Usage Notes & Classroom Reminders</label>
+                                <textarea id="formNotes" rows="2" class="w-full text-xs p-3 border border-stone-200 dark:border-zinc-700 bg-stone-50 dark:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded-xl" placeholder="Additional hints, cultural notes, teacher recommendations..."></textarea>
+                            </div>
+
+                            <!-- Action Controls -->
+                            <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-100 dark:border-zinc-800">
+                                <button type="button" onclick="resetForm()" class="text-xs text-stone-500 hover:text-stone-700 px-4 py-2 font-semibold">Clear Form</button>
+                                <button type="submit" id="submitFormBtn" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow transition-all">
+                                    <i class="fa-solid fa-floppy-disk mr-1"></i> Save Entry
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- METHOD 2: TEMPLATE UPLOAD PANEL -->
+                <div id="method-panel-template" class="space-y-6 hidden">
+                    <div class="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm space-y-4">
+                        <h4 class="font-bold text-sm text-stone-800 dark:text-zinc-100">Download Template Formats</h4>
+                        <p class="text-xs text-stone-500">Download the vocabulary schema. Fill the template and re-upload it to seamlessly extend your classroom list.</p>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="downloadClassroomTemplate('xlsx')" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-all">
+                                <i class="fa-solid fa-file-excel"></i> Download Excel Template (.xlsx)
+                            </button>
+                            <button onclick="downloadClassroomTemplate('csv')" class="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-all">
+                                <i class="fa-solid fa-file-csv"></i> Download CSV Template (.csv)
                             </button>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Drag and drop zone -->
+                    <div class="border-2 border-dashed border-stone-200 dark:border-zinc-800 rounded-3xl p-8 text-center bg-stone-50/50 dark:bg-zinc-900/30 hover:bg-stone-50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer relative" id="dropzoneTemplate">
+                        <input type="file" id="uploadTemplateInput" accept=".xlsx, .csv" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleTemplateUpload(event)">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                                <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-sm text-stone-800 dark:text-zinc-100">Upload Completed Template</h5>
+                                <p class="text-xs text-stone-500 mt-1">Select or drag & drop a filled template Excel (.xlsx) or CSV file</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METHOD 3: DOCUMENT UPLOAD SCANNER (Gemini-Powered) -->
+                <div id="method-panel-document" class="space-y-6 hidden">
+                    <div class="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-sm">
+                            <i class="fa-solid fa-brain"></i>
+                            <h4>Gemini AI Document Extractor</h4>
+                        </div>
+                        <p class="text-xs text-stone-500 leading-relaxed">
+                            Upload plain texts, PDF classroom reports, or MS Word DOCX stories. The system will use intelligent language models to identify vocabulary terms, idioms, phrasal verbs, translate them, and create precise contextual translations.
+                        </p>
+                    </div>
+
+                    <div class="border-2 border-dashed border-stone-200 dark:border-zinc-800 rounded-3xl p-8 text-center bg-stone-50/50 dark:bg-zinc-900/30 hover:bg-stone-50 dark:hover:bg-zinc-900/50 transition-all cursor-pointer relative" id="dropzoneDocument">
+                        <input type="file" id="uploadDocumentInput" accept=".txt, .docx, .pdf" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleDocumentUpload(event)">
+                        <div class="space-y-3" id="docUploadMessage">
+                            <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto">
+                                <i class="fa-solid fa-file-invoice text-xl"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-sm text-stone-800 dark:text-zinc-100">Scan Educational Documents</h5>
+                                <p class="text-xs text-stone-500 mt-1">Accepts PDF, DOCX, or TXT text files up to 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scan Active Progress Indicator -->
+                    <div id="scannerProgressPanel" class="hidden bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-stone-700 dark:text-zinc-300" id="scannerStepText">Reading document contents...</span>
+                            <span class="text-xs font-semibold text-emerald-600" id="scannerProgressPercent">15%</span>
+                        </div>
+                        <div class="w-full bg-stone-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                            <div id="scannerProgressBar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full w-[15%] transition-all duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PREVIEW & CONFLICT RESOLUTION WORKSPACE -->
+                <div id="importPreviewPanel" class="hidden space-y-6 pt-4">
+                    <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/60 p-5 rounded-3xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-sm text-amber-800 dark:text-amber-400 flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Preview & Resolve Duplicates (${state.pendingImports ? state.pendingImports.length : 0} entries parsed)
+                            </h4>
+                            <div class="flex items-center gap-2">
+                                <button onclick="clearPendingImports()" class="text-xs text-stone-500 hover:text-stone-700 font-semibold">Discard Import</button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-amber-700 dark:text-amber-300/80">
+                            We scanned the data and detected existing matching entries. Use the bulk controls below or resolve each conflict individually before saving to your primary glossary.
+                        </p>
+
+                        <!-- Global action solver selector -->
+                        <div class="bg-white dark:bg-zinc-900/50 p-3 rounded-2xl border border-amber-200/40 dark:border-zinc-800/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <span class="font-semibold text-stone-700 dark:text-zinc-300">Global Duplicate Strategy:</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="resolveAllConflicts('skip')" class="px-3 py-1 bg-stone-100 dark:bg-zinc-800 rounded-lg hover:bg-stone-200 transition-all font-semibold text-[11px]">
+                                    Skip All Duplicates
+                                </button>
+                                <button onclick="resolveAllConflicts('overwrite')" class="px-3 py-1 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg hover:bg-rose-100 transition-all font-semibold text-[11px]">
+                                    Overwrite Existing
+                                </button>
+                                <button onclick="resolveAllConflicts('merge')" class="px-3 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 rounded-lg hover:bg-emerald-100 transition-all font-semibold text-[11px]">
+                                    Merge & Append Notes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Preview spreadsheet-style grid table -->
+                    <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-stone-200 dark:border-zinc-800 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs min-w-[900px]">
+                            <thead>
+                                <tr class="bg-stone-50 dark:bg-zinc-800/50 border-b border-stone-200 dark:border-zinc-800 text-stone-500 font-bold">
+                                    <th class="p-3.5 text-center w-12">Import?</th>
+                                    <th class="p-3.5">Word / Expression</th>
+                                    <th class="p-3.5">Translation</th>
+                                    <th class="p-3.5">Definition (English)</th>
+                                    <th class="p-3.5">Example context</th>
+                                    <th class="p-3.5 w-24">Type</th>
+                                    <th class="p-3.5 w-36">Duplicate Action</th>
+                                    <th class="p-3.5 text-center w-20">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importPreviewTableBody" class="divide-y divide-stone-100 dark:divide-zinc-800/50">
+                                <!-- Populated dynamically by script -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Final Approval Buttons -->
+                    <div class="flex justify-end items-center gap-3">
+                        <button onclick="clearPendingImports()" class="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 dark:bg-zinc-800 text-stone-700 dark:text-white text-xs font-bold rounded-xl transition-all">
+                            Cancel
+                        </button>
+                        <button onclick="executeApprovedImports()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-950/20 transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Save & Approve Selected Entries
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -1060,6 +1192,9 @@
                 } catch(e) {}
             }
 
+            // Initialize pending imports session
+            state.pendingImports = [];
+
             applySettingsUI();
             updateDashboardStats();
             renderRecentFeed();
@@ -1132,8 +1267,11 @@
                 document.getElementById('menuIcon').classList.replace('fa-xmark', 'fa-bars');
             }
 
-            // Specific lazy view updates
-            if (tabId === 'dashboard') {
+            // Reset dynamic scanner and template panels when entering Add panel
+            if (tabId === 'add-vocab') {
+                switchAddMethod('manual');
+                clearPendingImports();
+            } else if (tabId === 'dashboard') {
                 updateDashboardStats();
                 renderRecentFeed();
             } else if (tabId === 'glossary') {
@@ -1639,6 +1777,505 @@
 
                 targetUl.innerHTML = items.length > 0 ? items.map(w => `<li class="flex items-center justify-between p-2 rounded-lg bg-stone-50 dark:bg-zinc-800/40 hover:bg-stone-100 dark:hover:bg-zinc-800 font-medium"><span>${w.word}</span> <span class="text-[10px] font-bold text-stone-400 italic">${w.translation}</span></li>`).join('') : '<li class="text-stone-400 italic text-[10px]">No entries</li>';
             });
+        }
+
+        // Section 3: Add New Vocabulary Panel Method switcher logic
+        function switchAddMethod(method) {
+            // Hide all sub-panels
+            document.getElementById('method-panel-manual').classList.add('hidden');
+            document.getElementById('method-panel-template').classList.add('hidden');
+            document.getElementById('method-panel-document').classList.add('hidden');
+
+            // Reset tab styles
+            const methods = ['manual', 'template', 'document'];
+            methods.forEach(m => {
+                const btn = document.getElementById(`btn-method-${m}`);
+                if (btn) {
+                    btn.className = "px-5 py-3 text-xs font-bold border-b-2 border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-zinc-300";
+                }
+            });
+
+            // Active chosen panel
+            document.getElementById(`method-panel-${method}`).classList.remove('hidden');
+            document.getElementById(`btn-method-${method}`).className = "px-5 py-3 text-xs font-bold border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400";
+        }
+
+        // Method 2: Download templates programmatically using SheetJS
+        function downloadClassroomTemplate(format) {
+            const headers = ["Unit", "Topic", "Type", "Word / Expression", "Translation", "Definition", "Example", "Difficulty", "Notes"];
+            const samples = [
+                ["1", "Daily Routine", "Phrasal verbs", "Chill out", "Relajarse / Tranquilizarse", "Calm down and relax completely.", "After a stressful exam, I just want to chill out.", "Beginner", "Informal usage."],
+                ["2", "Technology & Innovation", "Collocations", "Browse the web", "Navegar por la red", "Search or look for content on the internet.", "He spent hours browsing the web for coding ideas.", "Intermediate", "Common digital collocation."]
+            ];
+
+            if (format === 'csv') {
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + [headers.join(','), ...samples.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))].join('\n');
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "garas_classroom_vocab_template.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification("CSV Template Downloaded!", "fa-file-csv");
+            } else if (format === 'xlsx') {
+                // Generate genuine spreadsheet with SheetJS
+                const ws_data = [headers, ...samples];
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, "Syllabus Words");
+                XLSX.writeFile(wb, "garas_classroom_vocab_template.xlsx");
+                showNotification("Excel Template Downloaded!", "fa-file-excel");
+            }
+        }
+
+        // Method 2: Template Parser and Duplicate Spotter
+        function handleTemplateUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            
+            if (file.name.endsWith('.xlsx')) {
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], {header: 1});
+                    processRawTemplateRows(rows);
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.name.endsWith('.csv')) {
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const rows = text.split('\n').map(line => {
+                        // Regex matches CSV elements respecting quoted commas
+                        return (line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []).map(cell => cell.replace(/^"|"$/g, '').trim());
+                    });
+                    processRawTemplateRows(rows);
+                };
+                reader.readAsText(file);
+            } else {
+                showNotification("Unsupported format. Use .xlsx or .csv templates.", "fa-triangle-exclamation", "error");
+            }
+        }
+
+        // Raw matrix parser mapping to active database structures
+        function processRawTemplateRows(rows) {
+            if (rows.length < 2) {
+                showNotification("The template is empty or missing headers.", "fa-triangle-exclamation", "error");
+                return;
+            }
+
+            // Headers are expected in Row 0
+            const parsedItems = [];
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0 || !row[3]) continue; // Skip empty word cells
+
+                const word = row[3].trim();
+                const translation = row[4] ? row[4].trim() : '';
+                const definition = row[5] ? row[5].trim() : '';
+
+                if (!word || !translation || !definition) continue;
+
+                const duplicateExists = state.vocabulary.some(w => w.word.toLowerCase() === word.toLowerCase());
+
+                parsedItems.push({
+                    tempId: `pending-${Date.now()}-${i}`,
+                    word: word,
+                    translation: translation,
+                    definition: definition,
+                    example: row[6] ? row[6].trim() : "No example provided.",
+                    unit: parseInt(row[0]) || 1,
+                    topic: row[1] ? row[1].trim() : "General Topics",
+                    type: row[2] ? row[2].trim() : "New vocabulary words",
+                    difficulty: row[7] ? row[7].trim() : "Intermediate",
+                    notes: row[8] ? row[8].trim() : "",
+                    partOfSpeech: "phrase",
+                    isDuplicate: duplicateExists,
+                    duplicateAction: duplicateExists ? 'skip' : 'create', // Skip is the safe fallback default
+                    approved: true
+                });
+            }
+
+            if (parsedItems.length === 0) {
+                showNotification("No valid new entries found in the file.", "fa-triangle-exclamation", "error");
+                return;
+            }
+
+            state.pendingImports = parsedItems;
+            renderPendingImports();
+            showNotification(`Parsed ${parsedItems.length} terms. Duplicate checker initialized!`, "fa-binoculars");
+        }
+
+        // Method 3: Parse Document Upload text and query Gemini API for extraction
+        async function handleDocumentUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const progressPanel = document.getElementById('scannerProgressPanel');
+            const stepText = document.getElementById('scannerStepText');
+            const pBar = document.getElementById('scannerProgressBar');
+            const pPercent = document.getElementById('scannerProgressPercent');
+
+            // Reset progress UI
+            progressPanel.classList.remove('hidden');
+            pBar.style.width = "10%";
+            pPercent.innerText = "10%";
+            stepText.innerText = `Preparing file "${file.name}"...`;
+
+            try {
+                let fileText = "";
+
+                if (file.name.endsWith('.txt')) {
+                    fileText = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = (e) => reject(new Error("Error reading text file."));
+                        reader.readAsText(file);
+                    });
+                } else if (file.name.endsWith('.docx')) {
+                    pBar.style.width = "30%";
+                    pPercent.innerText = "30%";
+                    stepText.innerText = "Decompressing Word Document XMLs...";
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    fileText = result.value;
+                } else if (file.name.endsWith('.pdf')) {
+                    pBar.style.width = "30%";
+                    pPercent.innerText = "30%";
+                    stepText.innerText = "Parsing PDF structures and characters...";
+                    
+                    const arrayBuffer = await file.arrayBuffer();
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let text = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        text += textContent.items.map(item => item.str).join(' ') + '\n';
+                    }
+                    fileText = text;
+                } else {
+                    throw new Error("Format not supported. TXT, PDF, or DOCX only.");
+                }
+
+                if (!fileText || fileText.trim().length < 10) {
+                    throw new Error("Extracted document text was too short or empty.");
+                }
+
+                pBar.style.width = "50%";
+                pPercent.innerText = "50%";
+                stepText.innerText = "Sending text block to Gemini AI scanner model...";
+
+                // Call Gemini structured content parsing
+                const extractedVocabulary = await extractVocabularyWithAI(fileText);
+
+                pBar.style.width = "90%";
+                pPercent.innerText = "90%";
+                stepText.innerText = "Analyzing conflicts and matching database coordinates...";
+
+                // Standardize extracted items and run collision controls
+                const parsedItems = extractedVocabulary.map((item, idx) => {
+                    const word = item.word ? item.word.trim() : "";
+                    const duplicateExists = state.vocabulary.some(w => w.word.toLowerCase() === word.toLowerCase());
+
+                    return {
+                        tempId: `ai-pending-${Date.now()}-${idx}`,
+                        word: word,
+                        translation: item.translation ? item.translation.trim() : "",
+                        definition: item.definition ? item.definition.trim() : "",
+                        example: item.example ? item.example.trim() : "Extract from document.",
+                        unit: parseInt(item.unit) || 1,
+                        topic: item.topic || "General Topics",
+                        type: item.type || "New vocabulary words",
+                        difficulty: item.difficulty || "Intermediate",
+                        notes: item.notes || "Auto-extracted with Gemini.",
+                        partOfSpeech: item.partOfSpeech || "phrase",
+                        isDuplicate: duplicateExists,
+                        duplicateAction: duplicateExists ? 'skip' : 'create',
+                        approved: true
+                    };
+                }).filter(i => i.word && i.translation);
+
+                progressPanel.classList.add('hidden');
+                
+                if (parsedItems.length === 0) {
+                    showNotification("AI found no robust terms in the uploaded text.", "fa-triangle-exclamation", "error");
+                    return;
+                }
+
+                state.pendingImports = parsedItems;
+                renderPendingImports();
+                showNotification(`Gemini parsed ${parsedItems.length} useful items from the text.`, "fa-brain");
+
+            } catch (err) {
+                progressPanel.classList.add('hidden');
+                showNotification(`Scan Error: ${err.message}`, "fa-circle-exclamation", "error");
+                console.error(err);
+            }
+        }
+
+        // Perform direct structured extraction request via Gemini Flash Preview API
+        async function extractVocabularyWithAI(documentContent) {
+            const systemPrompt = `You are an expert English language classroom assistant. Scan the provided text block and extract interesting, useful, or advanced vocabulary words, idioms, phrasal verbs, and expressions.
+            You must output a strictly structured JSON Array. Translate each term into Spanish. Make sure definitions and contextual example sentences are concise, clean, and perfectly suited for language students.`;
+
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        word: { type: "STRING", description: "The English word, idiom, collocation, or phrasal verb." },
+                        translation: { type: "STRING", description: "Pristine translation of the concept in Spanish." },
+                        definition: { type: "STRING", description: "Clear definition explaining meaning in Simple English." },
+                        example: { type: "STRING", description: "Realistic example sentence showing how to use the word." },
+                        unit: { type: "NUMBER", description: "Suggested didactic module unit from 1 to 5." },
+                        topic: { type: "STRING", description: "Category like 'Technology & Innovation', 'Daily Routine', 'Human Emotions', 'Business & Finance', 'Travel & Leisure', 'Idioms & Slang'." },
+                        type: { type: "STRING", description: "Select from: 'New vocabulary words', 'Phrasal verbs', 'Idioms', 'Expressions', 'Collocations', 'Useful grammar chunks', 'Academic vocabulary', 'Everyday English expressions'" },
+                        difficulty: { type: "STRING", description: "Select from: 'Beginner', 'Intermediate', 'Advanced'" },
+                        partOfSpeech: { type: "STRING", description: "Select from: 'noun', 'verb', 'adjective', 'adverb', 'phrase'" },
+                        notes: { type: "STRING", description: "Extra cultural notes or teacher advice." }
+                    },
+                    required: ["word", "translation", "definition", "example", "type"]
+                }
+            };
+
+            const userQuery = `Analyze this document content. Identify the top educational terms and map them strictly to our JSON schema:\n\n${documentContent.substring(0, 8000)}`;
+
+            const apiKey = ""; // Canvas framework replaces this with proper access key in runtime context
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                },
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            // Implement basic backoff retry block to support smooth experience
+            let attempts = 0;
+            let response;
+            while (attempts < 3) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) break;
+                } catch(e) {}
+                attempts++;
+                await new Promise(r => setTimeout(r, 1000 * attempts));
+            }
+
+            if (!response || !response.ok) {
+                throw new Error("Handshake with Gemini cognitive API failed. Try a smaller file.");
+            }
+
+            const result = await response.json();
+            const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!jsonText) {
+                throw new Error("Intelligent agent failed to formulate a structured list.");
+            }
+
+            return JSON.parse(jsonText);
+        }
+
+        // Render Conflict workspace spreadsheet
+        function renderPendingImports() {
+            const container = document.getElementById('importPreviewPanel');
+            const tbody = document.getElementById('importPreviewTableBody');
+
+            if (!container || !tbody) return;
+
+            if (!state.pendingImports || state.pendingImports.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            tbody.innerHTML = state.pendingImports.map((item, idx) => {
+                const badgeColor = getCategoryColor(item.type);
+                const duplicateRowStyle = item.isDuplicate 
+                    ? "bg-rose-50/50 dark:bg-rose-950/10 border-l-4 border-rose-500" 
+                    : "hover:bg-stone-50/50 dark:hover:bg-zinc-800/10";
+
+                return `
+                    <tr class="${duplicateRowStyle}">
+                        <td class="p-3.5 text-center">
+                            <input type="checkbox" ${item.approved ? 'checked' : ''} onchange="togglePendingApproval(${idx})" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                        </td>
+                        <td class="p-3.5">
+                            <input type="text" value="${item.word}" onchange="editPendingField(${idx}, 'word', this.value)" class="bg-transparent hover:bg-white dark:hover:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800 border-b border-transparent focus:border-emerald-500 outline-none p-1 font-bold w-full">
+                        </td>
+                        <td class="p-3.5">
+                            <input type="text" value="${item.translation}" onchange="editPendingField(${idx}, 'translation', this.value)" class="bg-transparent hover:bg-white dark:hover:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800 border-b border-transparent focus:border-emerald-500 outline-none p-1 text-emerald-700 dark:text-emerald-400 font-semibold w-full">
+                        </td>
+                        <td class="p-3.5">
+                            <textarea onchange="editPendingField(${idx}, 'definition', this.value)" class="bg-transparent hover:bg-white dark:hover:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800 border-b border-transparent focus:border-emerald-500 outline-none p-1 w-full" rows="1">${item.definition}</textarea>
+                        </td>
+                        <td class="p-3.5">
+                            <textarea onchange="editPendingField(${idx}, 'example', this.value)" class="bg-transparent hover:bg-white dark:hover:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800 border-b border-transparent focus:border-emerald-500 outline-none p-1 italic text-stone-500 w-full" rows="1">${item.example}</textarea>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${badgeColor}">${item.type}</span>
+                        </td>
+                        <td class="p-3.5">
+                            ${item.isDuplicate ? `
+                                <select onchange="resolveSingleConflict(${idx}, this.value)" class="text-[10px] p-1.5 rounded-lg border border-rose-300 dark:border-rose-900 bg-white dark:bg-zinc-900 focus:ring-rose-500 text-rose-800 dark:text-rose-300 font-semibold">
+                                    <option value="skip" ${item.duplicateAction === 'skip' ? 'selected' : ''}>Skip duplicate</option>
+                                    <option value="overwrite" ${item.duplicateAction === 'overwrite' ? 'selected' : ''}>Overwrite database</option>
+                                    <option value="merge" ${item.duplicateAction === 'merge' ? 'selected' : ''}>Merge & Keep both</option>
+                                </select>
+                            ` : `
+                                <span class="text-emerald-600 font-semibold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Unique term</span>
+                            `}
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deletePendingItem(${idx})" class="text-rose-500 hover:text-rose-700 w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-950/20 flex items-center justify-center mx-auto" title="Discard word">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Inline edit field controllers
+        function editPendingField(index, field, value) {
+            if (state.pendingImports[index]) {
+                state.pendingImports[index][field] = value;
+            }
+        }
+
+        function togglePendingApproval(index) {
+            if (state.pendingImports[index]) {
+                state.pendingImports[index].approved = !state.pendingImports[index].approved;
+            }
+        }
+
+        function resolveSingleConflict(index, value) {
+            if (state.pendingImports[index]) {
+                state.pendingImports[index].duplicateAction = value;
+            }
+        }
+
+        // Apply bulk decision strategy values
+        function resolveAllConflicts(strategy) {
+            if (!state.pendingImports) return;
+            state.pendingImports.forEach(item => {
+                if (item.isDuplicate) {
+                    item.duplicateAction = strategy;
+                }
+            });
+            renderPendingImports();
+            showNotification(`Set duplicate conflict strategy to "${strategy}" globally.`, "fa-sliders");
+        }
+
+        function deletePendingItem(index) {
+            state.pendingImports.splice(index, 1);
+            renderPendingImports();
+            if (state.pendingImports.length === 0) {
+                clearPendingImports();
+            }
+        }
+
+        function clearPendingImports() {
+            state.pendingImports = [];
+            const container = document.getElementById('importPreviewPanel');
+            if (container) container.classList.add('hidden');
+            
+            // Clear upload elements to allow fresh scanners
+            document.getElementById('uploadTemplateInput').value = "";
+            document.getElementById('uploadDocumentInput').value = "";
+        }
+
+        // Save resolving imports to the primary persistent database
+        function executeApprovedImports() {
+            const approved = state.pendingImports.filter(item => item.approved);
+            if (approved.length === 0) {
+                showNotification("No items approved to import.", "fa-triangle-exclamation", "error");
+                return;
+            }
+
+            let totalImported = 0;
+            let totalOverwritten = 0;
+            let totalSkipped = 0;
+
+            approved.forEach(item => {
+                const existingIndex = state.vocabulary.findIndex(w => w.word.toLowerCase() === item.word.toLowerCase());
+
+                if (existingIndex !== -1) {
+                    // Conflict scenario
+                    if (item.duplicateAction === 'skip') {
+                        totalSkipped++;
+                        return;
+                    } else if (item.duplicateAction === 'overwrite') {
+                        // Standardize update preserving critical status values
+                        const original = state.vocabulary[existingIndex];
+                        state.vocabulary[existingIndex] = {
+                            ...original,
+                            translation: item.translation,
+                            definition: item.definition,
+                            example: item.example,
+                            difficulty: item.difficulty,
+                            type: item.type,
+                            notes: item.notes ? `${original.notes || ''} [Overwrite update: ${item.notes}]` : original.notes
+                        };
+                        totalOverwritten++;
+                    } else if (item.duplicateAction === 'merge') {
+                        // Keep previous entries and append newly discovered characteristics
+                        const original = state.vocabulary[existingIndex];
+                        state.vocabulary[existingIndex] = {
+                            ...original,
+                            notes: `${original.notes || ''} (Merged Note: ${item.notes || 'No notes'})`,
+                            collocations: [...new Set([...(original.collocations || []), ...(item.collocations || [])])],
+                            synonyms: [...new Set([...(original.synonyms || []), ...(item.synonyms || [])])]
+                        };
+                        totalImported++;
+                    }
+                } else {
+                    // Safe unique vocabulary item integration
+                    state.vocabulary.unshift({
+                        id: `imported-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                        word: item.word,
+                        type: item.type,
+                        partOfSpeech: item.partOfSpeech || 'noun',
+                        unit: item.unit,
+                        topic: item.topic,
+                        difficulty: item.difficulty,
+                        addedDate: new Date().toISOString().split('T')[0],
+                        definition: item.definition,
+                        translation: item.translation,
+                        pronunciation: "",
+                        example: item.example,
+                        synonyms: [], antonyms: [], collocations: [],
+                        notes: item.notes,
+                        status: 'New',
+                        studyCount: 0
+                    });
+                    totalImported++;
+                }
+            });
+
+            saveToLocalStorage();
+            clearPendingImports();
+            
+            showNotification(`Import Complete! Imported: ${totalImported}, Overwrote: ${totalOverwritten}, Skipped: ${totalSkipped} duplicate words.`, "fa-circle-check");
+            
+            switchTab('glossary');
         }
 
         // Process standard form save & modifications
